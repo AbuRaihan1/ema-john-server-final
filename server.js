@@ -27,20 +27,25 @@ async function run() {
     const productsCollection = client.db("emaJohnProductsManage");
     const products = productsCollection.collection("Products");
 
-    // get data from database. 
+    // get data from database.
     app.get("/products", async (req, res) => {
+      const currentPage = parseInt(req.query.currentPage);
+      const perPage = parseInt(req.query.perPage);
+
       const query = {};
       const cursor = products.find(query);
-      const result = await cursor.toArray();
-      res.send(result);
+      const product = await cursor
+        .skip(currentPage * perPage)
+        .limit(perPage)
+        .toArray();
+      const count = await products.estimatedDocumentCount();
+      res.send({ count, product });
     });
-
-    
   } finally {
   }
 }
 
 run().catch(console.dir);
 app.listen(port, () => {
-  console.log("object");
+  console.log("server running");
 });
